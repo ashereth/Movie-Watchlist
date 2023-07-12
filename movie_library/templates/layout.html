@@ -1,7 +1,8 @@
 {% from 'macros/nav.html' import header %}
 {% from 'macros/footer.html' import footer %}
 <!DOCTYPE html>
-<html lang="en">
+<!--set the class = dark-mode if the session theme is dark-->
+<html lang="en" class="{{ 'dark-mode' if session.get('theme') == 'dark' }}">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,10 +16,13 @@
     </head>
     
     <body>
+        <!--call the header function to create the navbar from nav.html-->
         {{ header(session.get("email"), session.get("theme")) }}
         <main class="main">
+            <!--create the block where the content of each page will be-->
             {% block main_content %} {% endblock %}
         </main>
+        <!--call the footer function to create the footer from footer.html-->
         {{ footer() }}
     </body>
 </html>
