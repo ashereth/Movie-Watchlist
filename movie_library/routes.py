@@ -1,4 +1,14 @@
-from flask import Blueprint, render_template, session, redirect, request
+import uuid
+from movie_library.models import Movie
+from dataclasses import asdict
+from flask import (Blueprint, 
+                   render_template, 
+                   session, 
+                   redirect, 
+                   request, 
+                   current_app, 
+                   url_for,
+                   )
 from movie_library.forms import MovieForm
 
 pages = Blueprint(
@@ -19,8 +29,23 @@ def add_movie():
     #create a form that is a MovieForm class
     form = MovieForm()
 
-    if request.method == "POST":
-        pass
+    #checks if the form has been run and checks validation
+    # if validation fails the errors for the fields get passed
+    if form.validate_on_submit():
+        #create a movie class from models.py and populate it with the form values
+        movie = Movie(
+            _id= uuid.uuid4().hex,
+            title= form.title.data,
+            director= form.director.data,
+            year= form.year.data
+            )
+        #add the movie to mongodb as a dictionary
+        # (all the default values will be included for the other fields)
+        current_app.db.movie.insert_one(asdict(movie))
+
+        return redirect(url_for(".index"))
+
+
     return render_template(
         "new_movie.html", 
         title="Movies Watchlist - Add Movie", 
