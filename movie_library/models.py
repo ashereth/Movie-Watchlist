@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from datetime import datetime
+# create a Movie class that can hold all of the information we need it to hold
 
+ 
 #dataclass automatically makes init functions and repr functions and allows for comparisons
 @dataclass
 class Movie:

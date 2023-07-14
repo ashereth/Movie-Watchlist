@@ -8,6 +8,7 @@ from flask import (Blueprint,
                    request, 
                    current_app, 
                    url_for,
+                   abort,
                    )
 from movie_library.forms import MovieForm
 
@@ -18,9 +19,13 @@ pages = Blueprint(
 #base route
 @pages.route("/")
 def index():
+    #get movie data from db and create a list of movie classes from them
+    movie_data = current_app.db.movie.find({})
+    movies = [Movie(**movie) for movie in movie_data]
     return render_template(
         "index.html",
         title="Movies Watchlist",
+        movies_data=movies
     )
 
 #route for adding movies using the form
@@ -53,9 +58,16 @@ def add_movie():
         )
 
 
+#route for displaying a given movies details
+@pages.get("/movie/<string:_id>")
+def movie(_id: str):
+    #create a Movie class using the info that we get from a given movie using .find_one(_id)
+    movie = Movie(**current_app.db.movie.find_one({"_id": _id}))
+    return render_template("movie_details.html", movie=movie)
+
 
 #route for choosing theme if this route gets called the theme switches
-@pages.route("/toggle-theme")
+@pages.get("/toggle-theme")
 def toggle_theme():
     current_theme = session.get("theme")
     if current_theme is None:# set the default theme if it doesn't exist
