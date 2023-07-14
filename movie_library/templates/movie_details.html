@@ -13,7 +13,14 @@
                     <!--list the movie title and rating that was given-->
                     <h1>{{ movie.title }}</h1>
                     <div class="movie__rating">
-                        {{ movie.rating }}
+                        <!--loop five times creating clickable stars each time-->
+                        {% for i in range(5) %}<!--the stars should have a link that changes the rating and takes the new rating and movie._id-->
+                            <a class="rating__link" href="{{ url_for('pages.rate_movie', _id=movie._id, rating=i+1) }}">
+                                <!--add onto the star css class if i<movie rating in order to change
+                                    the look of stars to display the rating correct rating (else statement is needed)-->
+                                {{ star("star " + ("star--filled" if i<movie.rating else "")) }}
+                            </a>
+                        {% endfor %}
                     </div>
                 </div>
                 <div class="movie__watched">

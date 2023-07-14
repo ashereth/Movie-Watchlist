@@ -65,6 +65,14 @@ def movie(_id: str):
     movie = Movie(**current_app.db.movie.find_one({"_id": _id}))
     return render_template("movie_details.html", movie=movie)
 
+#route for changing rating of a movie
+@pages.get("/movie/<string:_id>/rate")
+def rate_movie(_id):
+    #get the new rating
+    rating = int(request.args.get("rating"))
+    #update the rating of the movie with the new rating
+    current_app.db.movie.update_one({"_id": _id}, {"$set": {"rating": rating}})
+    return redirect(url_for(".movie", _id=_id))
 
 #route for choosing theme if this route gets called the theme switches
 @pages.get("/toggle-theme")
