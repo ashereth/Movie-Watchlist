@@ -27,15 +27,15 @@
                     <!--if the movie was watched print when it was last watched else print not watched yet-->
                     {% if movie.last_watched %}
                         <p>
-                            Last watched: <a href="#" class="watched__link">
+                            Last watched: <a href="{{ url_for('pages.watch_today', _id=movie._id) }}" class="watched__link">
                                 <time datetime="{{ movie.last_watched }}">{{movie.last_watched.strftime("%d %b %Y")}}</time>
                             </a>
                         </p>
                     {% else %}
                         <!--if it hasnt been watched add a link to mark it as watched-->
-                        <p><a href="#" class="watched__link">Not watched yet</a></p>
+                        <p><a href="{{ url_for('pages.watch_today', _id=movie._id) }}" class="watched__link">Not watched yet</a></p>
                     {% endif %}
-                    <a class="movie__edit" href="#">Edit {{ pencil("pencil") }}</a>
+                    <a class="movie__edit" href="{{ url_for('pages.edit_movie', _id=movie._id) }}">Edit {{ pencil("pencil") }}</a>
                 </div>
             </div>
             <div class="header__row">

@@ -6,7 +6,7 @@
   --background-color: #fff;
   --accent-color: #f56565;
   --accent-color-2: #3bb54a;
-  --tag-colour: #e5e5e5;
+  --tag-color: #e5e5e5;
 
   --border: 3px solid #000;
 }
@@ -20,7 +20,7 @@
   --background-color: #1c2023;
   --accent-color: #f56565;
   --accent-color-2: #3bb54a;
-  --tag-colour: var(--accent-colour-2);
+  --tag-colour: var(--accent-color-2);
 
   --border: 3px solid #fff;
 }

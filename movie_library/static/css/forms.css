@@ -68,7 +68,7 @@
   
 .form__link {
     text-decoration: none;
-    color: var(--accent-colour);
+    color: var(--accent-color);
 }
   
 .form__link:hover {
