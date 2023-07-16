@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import IntegerField, StringField, SubmitField, TextAreaField, URLField
-from wtforms.validators import InputRequired, NumberRange
+from wtforms import IntegerField, StringField, SubmitField, TextAreaField, URLField, PasswordField
+from wtforms.validators import InputRequired, NumberRange, Email, Length, EqualTo
 
 #create a class form to hold all the movie form data and make all of the fields required
 class MovieForm(FlaskForm):
@@ -40,7 +40,7 @@ class StringListField(TextAreaField):
         else:
             self.data = []
 
-
+#form for adding information about a movie that has already been added
 class ExtendedMovieForm(MovieForm):
     cast = StringListField("Cast")
     series = StringListField("Series")
@@ -49,3 +49,35 @@ class ExtendedMovieForm(MovieForm):
     video_link = URLField("Video Link")
 
     submit = SubmitField("Submit")
+
+#form for user signups
+class RegisterForm(FlaskForm):
+    # Email() validator makes sure the email provided is a valid email
+    email = StringField("Email", validators=[InputRequired(), Email()])
+    password = PasswordField(
+        "Password", 
+        validators=[InputRequired(),
+                    Length(
+                        min=4, 
+                        max=20, 
+                        message="Your password must be between 4 and 20 characters long."
+                        )
+                    ]
+                )
+    confirm_password = PasswordField(
+        "Confirm password", 
+        validators=[InputRequired(),
+                    EqualTo(#validator to make sure the passwords match
+                        "password", 
+                        message="Please make sure your passwords match."
+                        )
+                    ]
+                )
+    submit = SubmitField("Register")
+
+
+#create a form for loggin in
+class LoginForm(FlaskForm):
+    email = StringField("Email", validators=[InputRequired(), Email()])
+    password = PasswordField("Password", validators=[InputRequired()])
+    submit = SubmitField("Login")

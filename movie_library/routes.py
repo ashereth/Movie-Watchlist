@@ -1,7 +1,9 @@
 import uuid
-from movie_library.models import Movie
+from movie_library.models import Movie, User
+from passlib.hash import pbkdf2_sha256
 from dataclasses import asdict
 import datetime
+import functools
 from flask import (Blueprint, 
                    render_template, 
                    session, 
@@ -10,18 +12,37 @@ from flask import (Blueprint,
                    current_app, 
                    url_for,
                    abort,
+                   flash
                    )
-from movie_library.forms import MovieForm, ExtendedMovieForm
+from movie_library.forms import (MovieForm, 
+                                ExtendedMovieForm,
+                                RegisterForm, 
+                                LoginForm,
+                                )
 
 pages = Blueprint(
     "pages", __name__, template_folder="templates", static_folder="static"
 )
 
+def login_required(route):
+    @functools.wraps(route)
+    def route_wrapper(*args, **kwargs):
+        if session.get("email") is None:
+            return redirect(url_for(".login"))
+        
+        return route(*args, **kwargs)
+    return route_wrapper
+
+
 #base route
 @pages.route("/")
+@login_required#user must be logged in to see this page
 def index():
-    #get movie data from db and create a list of movie classes from them
-    movie_data = current_app.db.movie.find({})
+    #get current user data
+    user_data = current_app.db.user.find_one({"email": session["email"]})
+    user = User(**user_data)
+    #get movie data that is in the current users list of movies
+    movie_data = current_app.db.movie.find({"_id": {"$in": user.movies}})
     movies = [Movie(**movie) for movie in movie_data]
     return render_template(
         "index.html",
@@ -29,8 +50,80 @@ def index():
         movies_data=movies
     )
 
+
+#route for registering users
+@pages.route("/add", methods=["GET", "POST"])
+def register():
+    #if session already has a logged in email redirect to base route
+    if session.get("email"):
+        return redirect(url_for(".index"))
+
+    form = RegisterForm()
+    #if form is submitted and validated then get the data from it and save it as user
+    if form.validate_on_submit():
+        user = User(
+            _id=uuid.uuid4().hex,
+            email=form.email.data,
+            password=pbkdf2_sha256.hash(form.password.data)
+        )
+        #add user to the database of users
+        current_app.db.user.insert_one(asdict(user))
+        #flash a success message
+        flash("User registered successfully", "success")
+        #redirect user to login page
+        return redirect(url_for(".login"))
+
+    return render_template("register.html", title="Movies Watchlist - Register", form=form)
+
+
+#route for logging in
+@pages.route("/login", methods=["GET", "POST"])
+def login():
+    #if user is already signed in redirect to base
+    if session.get("email"):
+        return redirect(url_for(".index"))
+    #create form and check validation
+    form = LoginForm()
+    if form.validate_on_submit():
+        #try to find the user in the db using the email from the form
+        user_data = current_app.db.user.find_one({"email": form.email.data})
+        #if couldnt find user data using the email flash message
+        if not user_data:
+            flash("Login info not correct", category="danger")
+            return redirect(url_for(".login"))
+        
+        #create a user object using user_data that we got using the email
+        user = User(**user_data)
+
+        # check if the form password equals the user password
+        if user and pbkdf2_sha256.verify(form.password.data, user.password):
+            #populate the session with anything that we need and redirect to base
+            session["user_id"] = user._id
+            session["email"] = user.email
+
+            return redirect(url_for(".index"))
+        
+        flash("Login info not correct", category="danger")
+    
+    #if user couldnt be verified return to login page
+    return render_template("login.html", title="Movie Watchlist - Login", form=form)
+
+
+#logout route
+@pages.route("/logout")
+def logout():
+    #clear everything from session except the theme
+    current_theme = session["theme"]
+    session.clear()
+
+    session["theme"] = current_theme
+
+    return redirect(url_for(".login"))
+
+
 #route for adding movies using the form
 @pages.route("/add", methods=["GET", "POST"])
+@login_required#user must be logged in
 def add_movie():
     #create a form that is a MovieForm class
     form = MovieForm()
@@ -48,6 +141,10 @@ def add_movie():
         #add the movie to mongodb as a dictionary
         # (all the default values will be included for the other fields)
         current_app.db.movie.insert_one(asdict(movie))
+        #add the movie to the users list of movies
+        current_app.db.user.update_one(
+            {"_id": session["user_id"]}, {"$push": {"movies": movie._id}}
+        )
 
         return redirect(url_for(".index"))
 
@@ -61,6 +158,7 @@ def add_movie():
 
 
 @pages.route("/edit/<string:_id>", methods=["GET", "POST"])
+@login_required#user must be logged in
 def edit_movie(_id: str):
     #get movie class data
     movie = Movie(**current_app.db.movie.find_one({"_id": _id}))
@@ -94,6 +192,7 @@ def movie(_id: str):
 
 #route for changing rating of a movie
 @pages.get("/movie/<string:_id>/rate")
+@login_required#user must be logged in
 def rate_movie(_id):
     #get the new rating
     rating = int(request.args.get("rating"))
@@ -104,6 +203,7 @@ def rate_movie(_id):
 
 #for marking a movie as watched today
 @pages.get("/movie/<string:_id>/watch")
+@login_required#user must be logged in
 def watch_today(_id):
     #update the last_watched parameter with todays date
     current_app.db.movie.update_one(

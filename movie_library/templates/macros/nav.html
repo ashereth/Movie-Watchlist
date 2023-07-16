@@ -11,14 +11,14 @@
         <nav class="nav">
             {% if not email %}
                 <a 
-                    href="#"
-                    class="nav__link"
+                    href="{{ url_for('pages.login') }}"
+                    class="nav__link {{ 'nav__link--active' if request.path == url_for('pages.login') }}"
                     >
                         <span class="nav__item">Log in</span>
                 </a>
                 <a 
-                    href="#"
-                    class="nav__link"
+                    href="{{ url_for('pages.register') }}"
+                    class="nav__link {{ 'nav__link--active' if request.path == url_for('pages.register') }}"
                     >
                         <span class="nav__item">Register</span>
                 </a>
@@ -30,7 +30,7 @@
                     <span class="nav__item">Movies</span>
                 </a>
                 <a
-                    href="#"
+                    href="{{ url_for('pages.logout') }}"
                     class="nav__link"
                 >
                     <span class="nav__item">Log out</span>
