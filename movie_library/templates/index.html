@@ -1,47 +1,45 @@
 {% extends "layout.html" %}
 
 {% block head_content %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/movies.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/movies.css') }}" />
 {% endblock %}
 
 {% block main_content %}
-    <!--if there is data in movies then make a table to display each movie and its data-->
-    {% if movies_data %}
+
+    {%- if movies_data %}
         <table class="table">
             <colgroup>
-                <col style="width: 60%;">
-                <col style="width: 25%;">
-                <col style="width: 15%;">
+                <col style="width: 60%">
+                <col style="width: 25%">
+                <col style="width: 15%">
             </colgroup>
             <thead>
-                <th class="table__cell table__cell--header">Title</th>
-                <th class="table__cell table__cell--header">Release Date</th>
-                <th class="table__cell table__cell--header"></th>
+                <tr class="table__header">
+                    <th class="table__cell table__cell--header">Title</th>
+                    <th class="table__cell table__cell--header">Release Date</th>
+                    <th class="table__cell table__cell--header"></th>
+                </tr>
             </thead>
             <tbody>
-                <!--iterate through movies_data and since its a list of objects we can access elements of each movie-->
                 {% for movie in movies_data %}
                     <tr>
                         <td class="table__cell">
                             <p class="table__movieTitle">{{ movie.title }}</p>
-                            <p class="table__movieDirector">{{ movie.director }}</p>
+                            <p class="table__movieDirector">By {{ movie.director }}</p>
                         </td>
                         <td class="table__cell">{{ movie.year }}</td>
                         <td class="table__cell"><a href="{{ url_for('pages.movie', _id=movie._id) }}" class="table__link">View</a></td>
                     </tr>
                 {% endfor %}
             </tbody>
-            
         </table>
+        
     {% else %}
-    <!--if there aren't any movies in db then link to add a new movie-->
-        <p class="table__empty">
-            You haven't added any movies yet.
-            <a href="{{ url_for('pages.add_movie') }}" class="link">Add one!</a>
-        </p>
+        <p class="table__empty">You haven't added any movies yet. <a href="{{ url_for('pages.add_movie') }}" class="link">Add one!</a></p>
     {% endif %}
-    <!--create a button to add a new movie-->
+
     <a href="{{ url_for('pages.add_movie') }}" class="button button--add">
         <span>+</span>
     </a>
+
 {% endblock %}
